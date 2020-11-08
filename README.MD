@@ -14,7 +14,7 @@ Before start, you should have:
 
 ### How to start
 
-Download [latest](/releases/latest) version from releases page and unpack in any folder. Go to __bin__ folder and execute following command:
+Download [latest](https://github.com/smicyk/groovy-harventer/releases/latest) version from releases page and unpack in any folder. Go to __bin__ folder and execute following command:
 ```shell script
 $ harventer -i yourharfile.har -o yourdslscript.groovy
 ```
