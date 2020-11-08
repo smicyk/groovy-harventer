@@ -1,0 +1,131 @@
+@GrabConfig(systemClassLoader=true)
+@Grab('net.simonix.scripts:groovy-jmeter:${version}')
+
+<%
+/*
+ * Copyright 2020 Szymon Micyk
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+%>
+
+@groovy.transform.BaseScript net.simonix.dsl.jmeter.TestScript script
+
+<%
+def previousRequestDateTime = pageStartTime
+%>
+
+start {
+    plan {
+        summary(path: '${baseName}.jtl', enabled: true)
+        group(users: ${users}, rampUp: ${rampUp}) {
+<%
+            if(vars) {
+                if(compact) {
+                    out.println "            variables values: ["
+                    vars?.eachWithIndex { param, var, index ->
+                        out.print "                '${var}': ''"
+                        if(index != vars.size() - 1) {
+                            out.println ","
+                        }
+                    }
+                    out.println()
+                    out.println "            ]"
+                } else {
+                    out.println "            variables {"
+                    vars?.each { param, var ->
+                        out.println "                variable(name: '${var}', value: '')"
+                    }
+                    out.println "            }"
+                }
+            }
+%>
+            simple {
+                defaults(protocol: '${defaults.protocol}', domain: '${defaults.host}', port: ${defaults.port == -1 ? 80: defaults.port})
+                headers {
+                    // put your headers here
+                }
+                cookies()
+                cache()
+                loop(count: 1) {
+<%
+                    requests.each { request ->
+                        def url = request.url
+
+                        def duration = calcDuration.call(previousRequestDateTime, request)
+
+                        if(thinkTimeEnabled && duration > 0) {
+                            out.println "                    flow(name: 'Think Time', action: 'pause', duration: 0) {"
+                            out.println "                        uniform(name: 'Pause', delay: '${duration}', range: '100')"
+                            out.println "                    }"
+                        }
+
+                        previousRequestDateTime = request.requestDateTime
+
+                        out.println()
+                        if (request.multipart) {
+                            out.println "                    http('${request.method} ${url.path}', multipart: true)${request.hasChildren() ? ' {' : ''}"
+                        } else {
+                            out.println "                    http('${request.method} ${url.path}')${request.hasChildren() ? ' {' : ''}"
+                        }
+
+                        if (request.hasHeaders()) {
+                            if(compact) {
+                                out.println "                        headers values: ["
+                                request.headers?.eachWithIndex { header, index ->
+                                    out.print "                            '${header.name}': '${header.value}'"
+                                    if(index != request.headers.size() - 1) {
+                                        out.println ","
+                                    }
+                                }
+                                out.println()
+                                out.println "                        ]"
+                            } else {
+                                out.println "                        headers {"
+                                request.headers?.each { header ->
+                                    out.println "                            header(name: '${header.name}', value: '${header.value}')"
+                                }
+                                out.println "                        }"
+                            }
+                        }
+
+                        if (request.hasParams()) {
+                            if(compact) {
+                                out.println "                        params values: ["
+                                request.params.eachWithIndex { param, index ->
+                                    out.print "                            '${param.name}': '${param.value}'"
+                                    if(index != request.params.size() - 1) {
+                                        out.println ","
+                                    }
+                                }
+                                out.println()
+                                out.println "                        ]"
+                            } else {
+                                out.println "                        params {"
+                                request.params.each { param ->
+                                    out.println "                            param(name: '${param.name}', value: '${param.value}')"
+                                }
+                                out.println "                        }"
+                            }
+                        }
+
+                        if(request.hasChildren()) {
+                            out.println "                    }"
+                        }
+                    }
+%>
+                }
+            }
+        }
+    }
+}
