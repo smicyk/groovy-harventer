@@ -27,7 +27,7 @@ def previousRequestDateTime = pageStartTime
 
 start {
     plan {
-        summary(path: '${baseName}.jtl', enabled: true)
+        summary(file: '${baseName}.jtl', enabled: true)
         group(users: ${users}, rampUp: ${rampUp}) {
 <%
             if(vars) {
