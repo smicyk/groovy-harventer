@@ -169,12 +169,12 @@ Below you can find several examples of command execution:
           group(users: 1, rampUp: 1) {
               http('POST /app') { }
               flow(name: 'Think Time', action: 'pause', duration: 0) {
-                  uniform(name: 'Pause', deloay: '716', range: 100)
+                  uniform_timer(name: 'Pause', deloay: '716', range: 100)
               }
 
               http('GET /app/form') { }
               flow(name: 'Think Time', action: 'pause', duration: 0) {
-                  uniform(name: 'Pause', deloay: '300', range: 100)
+                  uniform_timer(name: 'Pause', deloay: '300', range: 100)
               }
           }
       }

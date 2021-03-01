@@ -47,7 +47,7 @@ java {
 }
 
 dependencies {
-    implementation('org.codehaus.groovy:groovy-all:2.5.7')
+    implementation('org.codehaus.groovy:groovy-all:2.5.9')
     implementation('commons-fileupload:commons-fileupload:1.4')
 
     runtime('javax.servlet:servlet-api:2.4')
