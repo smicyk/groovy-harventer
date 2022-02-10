@@ -193,7 +193,15 @@ class Converter {
         // assume first request as default one
         String protocol = first?.url?.protocol ?: ''
         String host = first?.url?.host ?: ''
-        int port = first?.url?.port ?: 80
+        Integer port = first?.url?.port
+
+        if (port == null) {
+            if (protocol == 'http') {
+                port = 80
+            } else if (protocol == 'https') {
+                port = 443
+            }
+        }
 
         def calcDuration = { LocalDateTime previous, Request request ->
             LocalDateTime current = request.requestDateTime

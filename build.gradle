@@ -111,3 +111,8 @@ publishing {
         }
     }
 }
+
+// disable gradle module metadata to make Ivy custom publication working
+tasks.withType(GenerateModuleMetadata) {
+    enabled = false
+}
