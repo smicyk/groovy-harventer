@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Szymon Micyk
+ * Copyright 2022 Szymon Micyk
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,8 @@
  */
 package net.simonix.scripts.harventer
 
-import groovy.cli.commons.CliBuilder
-import groovy.cli.commons.OptionAccessor
+import groovy.cli.picocli.CliBuilder
+import groovy.cli.picocli.OptionAccessor
 import groovy.transform.CompileDynamic
 import net.simonix.scripts.harventer.converter.Converter
 import net.simonix.scripts.harventer.converter.ConverterConfig
@@ -59,6 +59,7 @@ class Script {
             _(longOpt: 'exclude-types', args: 1, argName: ARG_NAME_PATTERN, 'Regex pattern for response content type to exclude (by default css, javascript, images and binary types are excluded)')
             _(longOpt: 'users', args: 1, type: Integer, argName: ARG_NAME_NUMBER, 'Number of users for default group')
             _(longOpt: 'ramp-up', args: 1, type: Integer, argName: ARG_NAME_NUMBER, 'Ramp up time for test plan')
+            _(longOpt: 'loops', args: 1, type: Integer, argName: ARG_NAME_NUMBER, 'Loops number for users')
         }
 
         return validateOptions(cliBuilder, args)
@@ -132,11 +133,11 @@ class Script {
 
             headerNameExcludes = properties.'converter.header_name_excludes'
             headerNameIncludes = properties.'converter.header_name_includes'
-            version = properties.'converter.dsl_version'
             thinkTimeEnabled = properties.'converter.think_time_enabled'.toBoolean()
 
             users = Integer.parseInt(properties.'converter.users')
             rampUp = Integer.parseInt(properties.'converter.ramp_up')
+            loops = Integer.parseInt(properties.'converter.loops')
 
             config.templateScript = properties.'converter.template_script'
         }
@@ -188,6 +189,10 @@ class Script {
 
         if (options.'ramp-up') {
             config.rampUp = options.'ramp-up'
+        }
+
+        if (options.'loops') {
+            config.loops = options.'loops'
         }
 
         if (options.t) {

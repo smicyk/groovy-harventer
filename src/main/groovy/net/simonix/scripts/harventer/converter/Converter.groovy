@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Szymon Micyk
+ * Copyright 2022 Szymon Micyk
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -215,7 +215,8 @@ class Converter {
                 thinkTimeEnabled: config.thinkTimeEnabled,
                 baseName: config.outputScript - ~/\.\w+$/,
                 users: config.users,
-                rampUp: config.rampUp
+                rampUp: config.rampUp,
+                loops: config.loops
         ]
 
         Template template = engine.createTemplate(getTemplateReader(config.templateScript))

@@ -1,9 +1,15 @@
 @GrabConfig(systemClassLoader=true)
-@Grab('net.simonix.scripts:groovy-jmeter:${version}')
+<%
+if(version) {
+    out.println "@Grab('net.simonix.scripts:groovy-jmeter:${version}')"
+} else {
+    out.println "@Grab('net.simonix.scripts:groovy-jmeter')"
+}
+%>
 
 <%
 /*
- * Copyright 2021 Szymon Micyk
+ * Copyright 2022 Szymon Micyk
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +34,7 @@ def previousRequestDateTime = pageStartTime
 start {
     plan {
         summary(file: '${baseName}.jtl', enabled: true)
-        group(users: ${users}, rampUp: ${rampUp}) {
+        group(users: ${users}, rampUp: ${rampUp}, loops: ${loops}) {
 <%
             if(vars) {
                 if(compact) {
@@ -50,82 +56,78 @@ start {
                 }
             }
 %>
-            simple {
-                defaults(protocol: '${defaults.protocol}', domain: '${defaults.host}', port: ${defaults.port == -1 ? 80: defaults.port})
-                headers {
-                    // put your headers here
-                }
-                cookies()
-                cache()
-                loop(count: 1) {
+            defaults(protocol: '${defaults.protocol}', domain: '${defaults.host}', port: ${defaults.port == -1 ? 80: defaults.port})
+            headers {
+                // put your headers here
+            }
+            cookies()
+            cache()
 <%
-                    requests.each { request ->
-                        def url = request.url
+            requests.each { request ->
+                def url = request.url
 
-                        def duration = calcDuration.call(previousRequestDateTime, request)
+                def duration = calcDuration.call(previousRequestDateTime, request)
 
-                        if(thinkTimeEnabled && duration > 0) {
-                            out.println "                    flow(name: 'Think Time', action: 'pause', duration: 0) {"
-                            out.println "                        uniform_timer(name: 'Pause', delay: '${duration}', range: '100')"
-                            out.println "                    }"
+                if(thinkTimeEnabled && duration > 0) {
+                    out.println "            flow(name: 'Think Time', action: 'pause', duration: 0) {"
+                    out.println "                uniform_timer(name: 'Pause', delay: '${duration}', range: '100')"
+                    out.println "            }"
+                }
+
+                previousRequestDateTime = request.requestDateTime
+
+                out.println()
+                if (request.multipart) {
+                    out.println "            http('${request.method} ${url.path}', multipart: true)${request.hasChildren() ? ' {' : ''}"
+                } else {
+                    out.println "            http('${request.method} ${url.path}')${request.hasChildren() ? ' {' : ''}"
+                }
+
+                if (request.hasHeaders()) {
+                    if(compact) {
+                        out.println "                headers values: ["
+                        request.headers?.eachWithIndex { header, index ->
+                            out.print "                    '${header.name}': '${header.value}'"
+                            if(index != request.headers.size() - 1) {
+                                out.println ","
+                            }
                         }
-
-                        previousRequestDateTime = request.requestDateTime
-
                         out.println()
-                        if (request.multipart) {
-                            out.println "                    http('${request.method} ${url.path}', multipart: true)${request.hasChildren() ? ' {' : ''}"
-                        } else {
-                            out.println "                    http('${request.method} ${url.path}')${request.hasChildren() ? ' {' : ''}"
+                        out.println "                ]"
+                    } else {
+                        out.println "                headers {"
+                        request.headers?.each { header ->
+                            out.println "                    header(name: '${header.name}', value: '${header.value}')"
                         }
-
-                        if (request.hasHeaders()) {
-                            if(compact) {
-                                out.println "                        headers values: ["
-                                request.headers?.eachWithIndex { header, index ->
-                                    out.print "                            '${header.name}': '${header.value}'"
-                                    if(index != request.headers.size() - 1) {
-                                        out.println ","
-                                    }
-                                }
-                                out.println()
-                                out.println "                        ]"
-                            } else {
-                                out.println "                        headers {"
-                                request.headers?.each { header ->
-                                    out.println "                            header(name: '${header.name}', value: '${header.value}')"
-                                }
-                                out.println "                        }"
-                            }
-                        }
-
-                        if (request.hasParams()) {
-                            if(compact) {
-                                out.println "                        params values: ["
-                                request.params.eachWithIndex { param, index ->
-                                    out.print "                            '${param.name}': '${param.value}'"
-                                    if(index != request.params.size() - 1) {
-                                        out.println ","
-                                    }
-                                }
-                                out.println()
-                                out.println "                        ]"
-                            } else {
-                                out.println "                        params {"
-                                request.params.each { param ->
-                                    out.println "                            param(name: '${param.name}', value: '${param.value}')"
-                                }
-                                out.println "                        }"
-                            }
-                        }
-
-                        if(request.hasChildren()) {
-                            out.println "                    }"
-                        }
+                        out.println "                }"
                     }
-%>
+                }
+
+                if (request.hasParams()) {
+                    if(compact) {
+                        out.println "                params values: ["
+                        request.params.eachWithIndex { param, index ->
+                            out.print "                    '${param.name}': '${param.value}'"
+                            if(index != request.params.size() - 1) {
+                                out.println ","
+                            }
+                        }
+                        out.println()
+                        out.println "                ]"
+                    } else {
+                        out.println "                params {"
+                        request.params.each { param ->
+                            out.println "                    param(name: '${param.name}', value: '${param.value}')"
+                        }
+                        out.println "                }"
+                    }
+                }
+
+                if(request.hasChildren()) {
+                    out.println "            }"
                 }
             }
+%>
         }
     }
 }
