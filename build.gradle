@@ -20,7 +20,7 @@ plugins {
     id 'eclipse'
     id 'ivy-publish'
     id 'codenarc'
-    id 'pl.allegro.tech.build.axion-release' version '1.12.1'
+    id 'pl.allegro.tech.build.axion-release' version '1.13.2'
 }
 
 repositories {
@@ -39,6 +39,7 @@ scmVersion {
     }
 }
 
+project.group = 'net.simonix.scripts'
 project.version = scmVersion.version
 
 java {
@@ -54,7 +55,7 @@ dependencies {
 
     implementation('commons-fileupload:commons-fileupload:1.4')
 
-//    runtime('javax.servlet:servlet-api:2.4')
+    runtimeOnly('javax.servlet:servlet-api:2.4')
 
     // testing and mocking
     testImplementation platform('org.spockframework:spock-bom:2.0-groovy-3.0')
@@ -100,7 +101,7 @@ publishing {
     }
     publications {
        ivy(IvyPublication) {
-            organisation = 'net.simonix.scripts'
+            organisation = project.group
             module = 'harventer'
             revision = project.version
 
