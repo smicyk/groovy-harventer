@@ -10,7 +10,7 @@ The .HAR files can be obtained by various tools (including all major browsers).
 
 Before start, you should have:
 
-- [Java 8+](https://openjdk.java.net/)
+- [Java 11+](https://openjdk.java.net/)
 
 ### How to start
 
@@ -50,6 +50,7 @@ usage: harventer [options]
     --include-types <pattern>             Regex pattern for response
                                           content type to include
     --include-urls <pattern>              Regex pattern for URL to include
+    --loops=<number>                      Loops number for users
  -o,--output-file <file>                  Output *.groovy file
  -P,--param-variables <param=variable>    Substitute param with variable
                                           (applies to request params)
@@ -77,23 +78,19 @@ Below you can find several examples of command execution:
   start {
       plan {
           summary(path: 'yourdslscript.jtl', enabled: true)
-          group(users: 1, rampUp: 1) {
+          group(users: 1, rampUp: 1, loops: 1) {
 
-              simple {
-                  // defaults comes from the first request available in .HAR file
-                  defaults(protocol: 'http', domain: 'localhost', port: 80)
+              // defaults comes from the first request available in .HAR file
+              defaults(protocol: 'http', domain: 'localhost', port: 80)
 
-                  loop(count: 1) {
-                      http('POST /app') {
-                          // headers are automatically added to http request
-                          headers {
-                              header(name: 'X-CSRF-TOKEN', value: '2429304892384092384093')
-                              header(name: 'Host', value: 'localhost')
-                          }
-                          params {
-                              param(name: 'param1', value: 'value1')
-                          }
-                      }
+              http('POST /app') {
+                  // headers are automatically added to http request
+                  headers {
+                      header(name: 'X-CSRF-TOKEN', value: '2429304892384092384093')
+                      header(name: 'Host', value: 'localhost')
+                  }
+                  params {
+                      param(name: 'param1', value: 'value1')
                   }
               }
           }
@@ -113,26 +110,22 @@ Below you can find several examples of command execution:
   start {
       plan {
           summary(path: 'yourdslscript.jtl', enabled: true)
-          group(users: 1, rampUp: 1) {
+          group(users: 1, rampUp: 1, loops: 1) {
               variables {
                   // variable defined on the command line
                   variable(name: 'var_csrfToken', value: '')
               }
 
-              simple {
-                  // defaults comes from the first request available in .HAR file
-                  defaults(protocol: 'http', domain: 'localhost', port: 80)
+              // defaults comes from the first request available in .HAR file
+              defaults(protocol: 'http', domain: 'localhost', port: 80)
 
-                  loop(count: 1) {
-                      http('POST /app') {
-                          // headers are automatically added to http request
-                          headers {
-                              header(name: 'X-CSRF-TOKEN', value: '${var_csrfToken')
-                          }
-                          params {
-                              param(name: 'param1', value: 'value1')
-                          }
-                      }
+              http('POST /app') {
+                  // headers are automatically added to http request
+                  headers {
+                      header(name: 'X-CSRF-TOKEN', value: '${var_csrfToken')
+                  }
+                  params {
+                      param(name: 'param1', value: 'value1')
                   }
               }
           }
@@ -141,16 +134,16 @@ Below you can find several examples of command execution:
   ```
   The options __--param-variables__ works pretty much the same but for HTTP parameters
 
-* Next example shows how to automatically add users and ramp up period for you test plan, with __--users__ and __--ramp-up__ options:
+* Next example shows how to automatically add users, ramp up and loops for you test plan, with __--users__,  __--ramp-up__ and __--loops__ options:
 
   ```shell script
-  $ harventer -i yourharfile.har -o yourdslscript.groovy --users 10 --rampUp 60
+  $ harventer -i yourharfile.har -o yourdslscript.groovy --users 10 --rampUp 60 --loops 10
   ```
 
   ```groovy
   start {
       plan {
-          group(users: 10, rampUp: 60) {
+          group(users: 10, rampUp: 60, loops: 10) {
               // rest of script
           }
       }
@@ -166,7 +159,7 @@ Below you can find several examples of command execution:
   ```groovy
   start {
       plan {
-          group(users: 1, rampUp: 1) {
+          group(users: 1, rampUp: 1, loops: 1) {
               http('POST /app') { }
               flow(name: 'Think Time', action: 'pause', duration: 0) {
                   uniform_timer(name: 'Pause', deloay: '716', range: 100)
